@@ -153,7 +153,11 @@ python convert_urdf_to_mjcf.py
 或者指定参数：
 
 ```bash
-python convert_urdf_to_mjcf.py --urdf arm_description/urdf/so_arm100_write.urdf --output mjcf_output
+# 默认输出到 URDF 文件所在目录
+python convert_urdf_to_mjcf.py --urdf arm_description/urdf/so_arm100_write.urdf
+
+# 指定自定义输出目录
+python convert_urdf_to_mjcf.py --urdf arm_description/urdf/so_arm100_write.urdf --output custom_output
 ```
 
 ### 方法二：命令行直接使用
@@ -161,7 +165,7 @@ python convert_urdf_to_mjcf.py --urdf arm_description/urdf/so_arm100_write.urdf 
 安装完成后，可以直接使用命令行工具：
 
 ```bash
-urdf2mjcf arm_description/urdf/so_arm100_write.urdf output_directory
+urdf2mjcf arm_description/urdf/so_arm100_write.urdf --output arm_description/urdf/so_arm100_write.xml
 ```
 
 参数说明：
@@ -177,7 +181,7 @@ from urdf2mjcf import convert_urdf_to_mjcf
 
 convert_urdf_to_mjcf(
     urdf_file="arm_description/urdf/so_arm100_write.urdf",
-    output_dir="output_directory"
+    output_dir="arm_description/urdf"
 )
 ```
 
@@ -235,6 +239,8 @@ URDF 文件中的 mesh 路径使用 ROS 的 `package://` 格式：
 
 转换完成后，会在输出目录生成：
 - `so_arm100_write.xml` - MuJoCo XML 格式文件
+- 默认保存在与 URDF 文件相同的目录（`arm_description/urdf/`）
+- 如果指定了 `--output` 参数，则保存在指定目录
 - 可能包含其他辅助文件
 
 ## 验证转换结果
@@ -245,17 +251,17 @@ URDF 文件中的 mesh 路径使用 ROS 的 `package://` 格式：
 
 ```bash
 # 基本验证
-python validate_mjcf.py mjcf_output/so_arm100_write.xml
+python validate_mjcf.py arm_description/urdf/so_arm100_write.xml
 ```
 
 **完整验证（包括 MuJoCo 加载测试）：**
 ```bash
-python validate_mjcf.py mjcf_output/so_arm100_write.xml --full
+python validate_mjcf.py arm_description/urdf/so_arm100_write.xml --full
 ```
 
 **验证并打开查看器：**
 ```bash
-python validate_mjcf.py mjcf_output/so_arm100_write.xml --viewer
+python validate_mjcf.py arm_description/urdf/so_arm100_write.xml --viewer
 ```
 
 验证工具会检查：
@@ -270,13 +276,13 @@ python validate_mjcf.py mjcf_output/so_arm100_write.xml --viewer
 转换完成后，也可以直接使用 MuJoCo 查看器加载生成的 MJCF 文件：
 
 ```bash
-python -m mujoco.viewer --mjcf output_directory/so_arm100_write.xml
+python -m mujoco.viewer --mjcf arm_description/urdf/so_arm100_write.xml
 ```
 
 或者：
 
 ```bash
-mujoco-viewer output_directory/so_arm100_write.xml
+mujoco-viewer arm_description/urdf/so_arm100_write.xml
 ```
 
 ### 检查清单
@@ -327,7 +333,7 @@ python convert_meshes_stl_to_obj.py
 python convert_urdf_to_mjcf.py
 
 # 4. 验证转换结果
-python validate_mjcf.py mjcf_output/so_arm100_write.xml --full
+python validate_mjcf.py arm_description/urdf/so_arm100_write.xml --full
 ```
 
 ### Q5: 如何验证转换后的 XML 文件是否正确
@@ -337,13 +343,13 @@ python validate_mjcf.py mjcf_output/so_arm100_write.xml --full
 
 ```bash
 # 基本验证
-python validate_mjcf.py mjcf_output/so_arm100_write.xml
+python validate_mjcf.py arm_description/urdf/so_arm100_write.xml
 
 # 完整验证（包括 MuJoCo 加载测试）
-python validate_mjcf.py mjcf_output/so_arm100_write.xml --full
+python validate_mjcf.py arm_description/urdf/so_arm100_write.xml --full
 
 # 验证并打开查看器
-python validate_mjcf.py mjcf_output/so_arm100_write.xml --viewer
+python validate_mjcf.py arm_description/urdf/so_arm100_write.xml --viewer
 ```
 
 验证工具会自动检查：
@@ -396,14 +402,15 @@ python validate_mjcf.py mjcf_output/so_arm100_write.xml --viewer
    ```bash
    python convert_urdf_to_mjcf.py
    ```
+   转换后的 XML 文件会保存在 `arm_description/urdf/so_arm100_write.xml`
 
 6. **验证转换结果**
    ```bash
    # 使用验证工具
-   python validate_mjcf.py mjcf_output/so_arm100_write.xml --full
+   python validate_mjcf.py arm_description/urdf/so_arm100_write.xml --full
    
    # 或使用查看器
-   python validate_mjcf.py mjcf_output/so_arm100_write.xml --viewer
+   python validate_mjcf.py arm_description/urdf/so_arm100_write.xml --viewer
    ```
 
 ## 更新日志

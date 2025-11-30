@@ -122,21 +122,22 @@ def resolve_urdf_path(urdf_path: str) -> Path:
     raise FileNotFoundError(f"找不到 URDF 文件: {urdf_path}")
 
 
-def prepare_output_dir(output_dir: str) -> Path:
+def prepare_output_dir(output_dir: Optional[str]) -> Path:
     """准备输出目录"""
+    if output_dir is None:
+        # 返回一个临时路径，实际会在 convert_urdf_to_mjcf 中处理
+        return Path.cwd() / 'mjcf_output'
+    
     output_path = Path(output_dir)
     
     # 如果是相对路径，相对于当前工作目录
     if not output_path.is_absolute():
         output_path = Path.cwd() / output_path
     
-    # 创建输出目录
-    output_path.mkdir(parents=True, exist_ok=True)
-    
     return output_path.resolve()
 
 
-def convert_urdf_to_mjcf(urdf_file: str, output_dir: str, verbose: bool = True) -> bool:
+def convert_urdf_to_mjcf(urdf_file: str, output_dir: Optional[str], verbose: bool = True) -> bool:
     """
     转换 URDF 文件到 MJCF 格式
     
@@ -186,8 +187,14 @@ def convert_urdf_to_mjcf(urdf_file: str, output_dir: str, verbose: bool = True) 
         # 注意：--output 参数需要的是文件路径，而不是目录路径
         # 注意：urdf2mjcf 会基于 URDF 文件位置解析相对路径
         
-        # 确保输出目录存在
-        output_path.mkdir(parents=True, exist_ok=True)
+        # 如果输出目录是默认值（mjcf_output），使用 URDF 文件所在目录
+        if output_dir == 'mjcf_output' or (output_path.name == 'mjcf_output' and output_path != Path.cwd() / 'mjcf_output'):
+            output_path = urdf_path.parent
+            if verbose:
+                print(f"[INFO] 使用 URDF 文件所在目录作为输出目录: {output_path}")
+        else:
+            # 确保输出目录存在
+            output_path.mkdir(parents=True, exist_ok=True)
         
         # 从 URDF 文件名生成输出 XML 文件名
         output_xml_file = output_path / f"{urdf_path.stem}.xml"
@@ -273,12 +280,11 @@ def find_output_xml(output_dir: Path, urdf_path: Path) -> Optional[Path]:
         if xml_path.exists():
             return xml_path
     
-    # 如果没找到，可能在 URDF 文件所在目录的 mjcf_output 子目录中
-    # （因为 urdf2mjcf 可能基于 URDF 文件位置解析相对路径）
-    urdf_output_dir = urdf_path.parent / 'mjcf_output'
-    if urdf_output_dir.exists():
+    # 如果没找到，可能在 URDF 文件所在目录（优先）
+    urdf_dir = urdf_path.parent
+    if urdf_dir != output_dir:
         for name in possible_names:
-            xml_path = urdf_output_dir / name
+            xml_path = urdf_dir / name
             if xml_path.exists():
                 return xml_path
     
@@ -287,7 +293,7 @@ def find_output_xml(output_dir: Path, urdf_path: Path) -> Optional[Path]:
     if xml_files:
         return xml_files[0]
     
-    xml_files = list(urdf_output_dir.glob('*.xml')) if urdf_output_dir.exists() else []
+    xml_files = list(urdf_dir.glob('*.xml'))
     if xml_files:
         return xml_files[0]
     
@@ -305,7 +311,7 @@ def main():
   python convert_urdf_to_mjcf.py
   
   # 指定输入和输出路径
-  python convert_urdf_to_mjcf.py --urdf arm_description/urdf/so_arm100_write.urdf --output mjcf_output
+  python convert_urdf_to_mjcf.py --urdf arm_description/urdf/so_arm100_write.urdf --output custom_output
   
   # 使用绝对路径
   python convert_urdf_to_mjcf.py --urdf E:/arm_robot/urdf2mjcf/arm_description/urdf/so_arm100_write.urdf
@@ -322,8 +328,8 @@ def main():
     parser.add_argument(
         '--output',
         type=str,
-        default='mjcf_output',
-        help='输出目录 (默认: mjcf_output)'
+        default=None,
+        help='输出目录 (默认: 与 URDF 文件相同目录)'
     )
     
     parser.add_argument(
@@ -335,15 +341,22 @@ def main():
     args = parser.parse_args()
     
     # 执行转换
+    # 如果没有指定输出目录，使用 'mjcf_output' 作为标记，函数内部会使用 URDF 文件所在目录
+    output_dir = args.output if args.output else 'mjcf_output'
+    
     success = convert_urdf_to_mjcf(
         urdf_file=args.urdf,
-        output_dir=args.output,
+        output_dir=output_dir,
         verbose=not args.quiet
     )
     
     if success:
-        output_path = prepare_output_dir(args.output)
         urdf_path = resolve_urdf_path(args.urdf)
+        # 如果使用默认输出，输出目录是 URDF 文件所在目录
+        if args.output is None or output_dir == 'mjcf_output':
+            output_path = urdf_path.parent
+        else:
+            output_path = prepare_output_dir(args.output)
         xml_file = find_output_xml(output_path, urdf_path)
         
         if xml_file:

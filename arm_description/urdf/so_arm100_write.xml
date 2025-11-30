@@ -21,14 +21,14 @@
     <material name="material_1" rgba="0.21176 1 0.59608 1" />
     <material name="default_material" rgba="0.7 0.7 0.7 1" />
     <material name="collision_material" rgba="1.0 0.28 0.1 0.9" />
-    <mesh name="base_link.STL" file="../arm_description/meshes/base_link.obj" />
-    <mesh name="shoulder_link.STL" file="../arm_description/meshes/shoulder_link.obj" />
-    <mesh name="upper_arm_link.STL" file="../arm_description/meshes/upper_arm_link.obj" />
-    <mesh name="forearm_link.STL" file="../arm_description/meshes/forearm_link.obj" />
-    <mesh name="wrist_1_link.STL" file="../arm_description/meshes/wrist_1_link.obj" />
-    <mesh name="wrist_2_link.STL" file="../arm_description/meshes/wrist_2_link.obj" />
-    <mesh name="jaw_link.STL" file="../arm_description/meshes/jaw_link.obj" />
-    <mesh name="pen_point_link.STL" file="../arm_description/meshes/pen_point_link.obj" />
+    <mesh name="base_link.STL" file="../meshes/base_link.obj" />
+    <mesh name="shoulder_link.STL" file="../meshes/shoulder_link.obj" />
+    <mesh name="upper_arm_link.STL" file="../meshes/upper_arm_link.obj" />
+    <mesh name="forearm_link.STL" file="../meshes/forearm_link.obj" />
+    <mesh name="wrist_1_link.STL" file="../meshes/wrist_1_link.obj" />
+    <mesh name="wrist_2_link.STL" file="../meshes/wrist_2_link.obj" />
+    <mesh name="jaw_link.STL" file="../meshes/jaw_link.obj" />
+    <mesh name="pen_point_link.STL" file="../meshes/pen_point_link.obj" />
   </asset>
 
   <worldbody>

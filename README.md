@@ -63,12 +63,14 @@ cp arm_description/meshes_obj/*.obj arm_description/meshes/
 python convert_urdf_to_mjcf.py
 ```
 
+转换后的 XML 文件会保存在与 URDF 文件相同的目录（`arm_description/urdf/`）。
+
 ### 5. 修复 XML 文件（推荐）
 
 转换后的 XML 文件可能包含需要修复的问题（如 `package://` 路径、空的 material 名称等）。使用修复工具自动修复：
 
 ```bash
-python fix_mjcf_xml.py mjcf_output/so_arm100_write.xml
+python fix_mjcf_xml.py arm_description/urdf/so_arm100_write.xml
 ```
 
 修复工具会自动：
@@ -81,17 +83,17 @@ python fix_mjcf_xml.py mjcf_output/so_arm100_write.xml
 
 ```bash
 # 使用验证工具
-python validate_mjcf.py mjcf_output/so_arm100_write.xml --full
+python validate_mjcf.py arm_description/urdf/so_arm100_write.xml --full
 
 # 或验证并打开查看器
-python validate_mjcf.py mjcf_output/so_arm100_write.xml --viewer
+python validate_mjcf.py arm_description/urdf/so_arm100_write.xml --viewer
 ```
 
 ### 7. 在 MuJoCo 查看器中查看模型（推荐）
 
 ```bash
 # 直接在 MuJoCo 查看器中打开模型
-python view_mjcf.py mjcf_output/so_arm100_write.xml
+python view_mjcf.py arm_description/urdf/so_arm100_write.xml
 ```
 
 ## 项目结构
