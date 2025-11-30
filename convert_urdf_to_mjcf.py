@@ -181,19 +181,24 @@ def convert_urdf_to_mjcf(urdf_file: str, output_dir: str, verbose: bool = True) 
             print()
         
         # 执行转换
-        # 注意：urdf2mjcf 的命令行格式可能是：
-        # urdf2mjcf <urdf_file> <output_dir>
-        # 或者
-        # urdf2mjcf --input <urdf_file> --output <output_dir>
+        # urdf2mjcf 的正确格式：
+        # urdf2mjcf <urdf_path> --output <output_file>
+        # 注意：--output 参数需要的是文件路径，而不是目录路径
+        # 注意：urdf2mjcf 会基于 URDF 文件位置解析相对路径
         
-        # 尝试第一种格式
+        # 确保输出目录存在
+        output_path.mkdir(parents=True, exist_ok=True)
+        
+        # 从 URDF 文件名生成输出 XML 文件名
+        output_xml_file = output_path / f"{urdf_path.stem}.xml"
+        
         try:
+            # 使用绝对路径，确保输出文件在正确的位置
             result = subprocess.run(
-                ['urdf2mjcf', str(urdf_path), str(output_path)],
+                ['urdf2mjcf', str(urdf_path), '--output', str(output_xml_file)],
                 capture_output=True,
                 text=True,
-                timeout=120,
-                cwd=str(urdf_path.parent)
+                timeout=120
             )
             
             if result.returncode == 0:
@@ -203,12 +208,16 @@ def convert_urdf_to_mjcf(urdf_file: str, output_dir: str, verbose: bool = True) 
                         print(result.stdout)
                 return True
             else:
-                # 尝试第二种格式（带参数）
+                # 如果绝对路径失败，尝试相对路径（从 URDF 文件所在目录）
                 if verbose:
-                    print("尝试使用参数格式...")
+                    print("尝试使用相对路径...")
+                
+                urdf_relative = urdf_path.relative_to(urdf_path.parent)
+                # 计算相对于 URDF 文件所在目录的输出路径
+                output_relative = output_xml_file.relative_to(urdf_path.parent)
                 
                 result = subprocess.run(
-                    ['urdf2mjcf', '--input', str(urdf_path), '--output', str(output_path)],
+                    ['urdf2mjcf', str(urdf_relative), '--output', str(output_relative)],
                     capture_output=True,
                     text=True,
                     timeout=120,
@@ -248,23 +257,37 @@ def convert_urdf_to_mjcf(urdf_file: str, output_dir: str, verbose: bool = True) 
         return False
 
 
-def find_output_xml(output_dir: Path) -> Optional[Path]:
+def find_output_xml(output_dir: Path, urdf_path: Path) -> Optional[Path]:
     """查找生成的 XML 文件"""
-    # 可能的文件名
+    # 可能的文件名（基于 URDF 文件名）
+    urdf_stem = urdf_path.stem
     possible_names = [
-        'so_arm100_write.xml',
+        f'{urdf_stem}.xml',
         'robot.xml',
         'model.xml',
     ]
     
-    # 首先查找已知名称
+    # 首先在指定的输出目录查找
     for name in possible_names:
         xml_path = output_dir / name
         if xml_path.exists():
             return xml_path
     
-    # 查找所有 XML 文件
+    # 如果没找到，可能在 URDF 文件所在目录的 mjcf_output 子目录中
+    # （因为 urdf2mjcf 可能基于 URDF 文件位置解析相对路径）
+    urdf_output_dir = urdf_path.parent / 'mjcf_output'
+    if urdf_output_dir.exists():
+        for name in possible_names:
+            xml_path = urdf_output_dir / name
+            if xml_path.exists():
+                return xml_path
+    
+    # 查找所有 XML 文件（先在输出目录，再在 URDF 目录）
     xml_files = list(output_dir.glob('*.xml'))
+    if xml_files:
+        return xml_files[0]
+    
+    xml_files = list(urdf_output_dir.glob('*.xml')) if urdf_output_dir.exists() else []
     if xml_files:
         return xml_files[0]
     
@@ -320,9 +343,24 @@ def main():
     
     if success:
         output_path = prepare_output_dir(args.output)
-        xml_file = find_output_xml(output_path)
+        urdf_path = resolve_urdf_path(args.urdf)
+        xml_file = find_output_xml(output_path, urdf_path)
         
         if xml_file:
+            # 如果文件不在预期的输出目录，尝试移动到正确位置
+            if xml_file.parent != output_path:
+                expected_file = output_path / xml_file.name
+                if not expected_file.exists():
+                    try:
+                        import shutil
+                        shutil.move(str(xml_file), str(expected_file))
+                        xml_file = expected_file
+                        print(f"✓ 已将文件移动到: {xml_file}")
+                    except Exception as e:
+                        print(f"⚠️  文件在: {xml_file}")
+                        print(f"   预期位置: {expected_file}")
+                        print(f"   移动失败: {e}")
+            
             print()
             print("=" * 60)
             print("转换完成!")
@@ -330,12 +368,14 @@ def main():
             print(f"生成的 MJCF 文件: {xml_file}")
             print()
             print("验证转换结果:")
-            print(f"  python -m mujoco.viewer --mjcf {xml_file}")
-            print(f"  或: mujoco-viewer {xml_file}")
+            print(f"  python validate_mjcf.py {xml_file} --full")
+            print(f"  或: python -m mujoco.viewer --mjcf {xml_file}")
         else:
             print()
             print("⚠️  转换完成，但未找到生成的 XML 文件")
-            print(f"   请检查输出目录: {output_path}")
+            print(f"   请检查以下位置:")
+            print(f"   - 输出目录: {output_path}")
+            print(f"   - URDF 目录: {urdf_path.parent / 'mjcf_output'}")
         
         sys.exit(0)
     else:

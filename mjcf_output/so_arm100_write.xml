@@ -1,0 +1,112 @@
+<?xml version='1.0' encoding='utf-8'?>
+<mujoco model="so_arm100_write">
+  <default>
+    <default class="robot">
+      <default class="motor">
+        <joint />
+        <motor />
+      </default>
+      <default class="visual">
+        <geom material="visualgeom" contype="0" conaffinity="0" group="2" />
+      </default>
+      <default class="collision">
+        <geom material="collision_material" condim="3" contype="0" conaffinity="1" priority="1" group="1" solref="0.005 1" solimp="0.99 0.999 1e-05" friction="1 0.01 0.01" />
+      </default>
+    </default>
+  </default>
+
+  <compiler angle="radian" />
+
+  <asset>
+    <material name="material_1" rgba="0.21176 1 0.59608 1" />
+    <material name="default_material" rgba="0.7 0.7 0.7 1" />
+    <material name="collision_material" rgba="1.0 0.28 0.1 0.9" />
+    <mesh name="base_link.STL" file="../arm_description/meshes/base_link.obj" />
+    <mesh name="shoulder_link.STL" file="../arm_description/meshes/shoulder_link.obj" />
+    <mesh name="upper_arm_link.STL" file="../arm_description/meshes/upper_arm_link.obj" />
+    <mesh name="forearm_link.STL" file="../arm_description/meshes/forearm_link.obj" />
+    <mesh name="wrist_1_link.STL" file="../arm_description/meshes/wrist_1_link.obj" />
+    <mesh name="wrist_2_link.STL" file="../arm_description/meshes/wrist_2_link.obj" />
+    <mesh name="jaw_link.STL" file="../arm_description/meshes/jaw_link.obj" />
+    <mesh name="pen_point_link.STL" file="../arm_description/meshes/pen_point_link.obj" />
+  </asset>
+
+  <worldbody>
+    <body name="base_link" pos="0.00000000 0.00000000 0.00000000" quat="1 0 0 0" childclass="robot">
+      <freejoint name="floating_base" />
+      <geom name="base_link_collision" pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" mesh="base_link.STL" class="collision" />
+      <geom name="base_link_visual" pos="0 0 0" quat="1.0 0.0 0.0 0.0" material="material_1" type="mesh" mesh="base_link.STL" class="visual" />
+      <body name="shoulder_link" pos="0 -0.0452 0.0305" quat="0.7071054825112363 0.7071080798594735 0.0 0.0">
+        <joint name="shoulder_pan_joint" type="hinge" ref="0.0" class="motor" range="-1.57 1.57" axis="0 1 0" />
+        <inertial pos="-9.12316731584547E-05 0.0453803334798309 0.0312407304094353" quat="1.0 0.0 0.0 0.0" mass="0.118647318561975" diaginertia="5.90249308656609e-05 3.21184663530608e-05 5.85899047238746e-05" />
+        <geom name="shoulder_link_collision" pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" mesh="shoulder_link.STL" class="collision" />
+        <geom name="shoulder_link_visual" pos="0 0 0" quat="1.0 0.0 0.0 0.0" material="material_1" type="mesh" mesh="shoulder_link.STL" class="visual" />
+        <body name="upper_arm_link" pos="-0.0158000000000001 0.0885000000000001 0.0306" quat="1.0 0.0 0.0 0.0">
+          <joint name="shoulder_lift_joint" type="hinge" ref="0.0" class="motor" range="-1.57 1.57" axis="-1 0 0" />
+          <inertial pos="0.0156827940119797 0.0427320224136673 0.0557572855175068" quat="1.0 0.0 0.0 0.0" mass="0.162409410667205" diaginertia="0.000167153316638548 0.000152074160609916 0.000131401089309618" />
+          <geom name="upper_arm_link_collision" pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" mesh="upper_arm_link.STL" class="collision" />
+          <geom name="upper_arm_link_visual" pos="0 0 0" quat="1.0 0.0 0.0 0.0" material="material_1" type="mesh" mesh="upper_arm_link.STL" class="visual" />
+          <body name="forearm_link" pos="0.0317 0.050909 0.10423" quat="1.0 0.0 0.0 0.0">
+            <joint name="elbow_joint" type="hinge" ref="0.0" class="motor" range="-1.57 1.57" axis="-1 0 0" />
+            <inertial pos="-0.0193960366107941 -0.0579469913285191 0.0504221037322429" quat="1.0 0.0 0.0 0.0" mass="0.147967791829467" diaginertia="0.000105334009302061 8.54418962703684e-05 0.000104198951098453" />
+            <geom name="forearm_link_collision" pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" mesh="forearm_link.STL" class="collision" />
+            <geom name="forearm_link_visual" pos="0 0 0" quat="1.0 0.0 0.0 0.0" material="material_1" type="mesh" mesh="forearm_link.STL" class="visual" />
+            <body name="wrist_1_link" pos="0 -0.099997 0.090695" quat="1.0 0.0 0.0 0.0">
+              <joint name="wrist_pitch_joint" type="hinge" ref="0.0" class="motor" range="-1.57 1.57" axis="-1 0 0" />
+              <inertial pos="-0.0246265312098483 -2.34622220739861E-05 0.0352278998818427" quat="1.0 0.0 0.0 0.0" mass="0.0661320665571637" diaginertia="1.95717492021294e-05 3.45401433389061e-05 2.38028417058412e-05" />
+              <geom name="wrist_1_link_collision" pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" mesh="wrist_1_link.STL" class="collision" />
+              <geom name="wrist_1_link_visual" pos="0 0 0" quat="1.0 0.0 0.0 0.0" material="material_1" type="mesh" mesh="wrist_1_link.STL" class="visual" />
+              <body name="wrist_2_link" pos="-0.0161 0 0.0586" quat="1.0 0.0 0.0 0.0">
+                <joint name="wrist_roll_joint" type="hinge" ref="0.0" class="motor" range="-1.57 1.57" axis="0 0 1" />
+                <inertial pos="0.00553729748428378 0.000450839244584361 0.0295127614083582" quat="1.0 0.0 0.0 0.0" mass="0.0931646506349648" diaginertia="4.34101625638855e-05 5.02748039720235e-05 3.04999659487805e-05" />
+                <geom name="wrist_2_link_collision" pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" mesh="wrist_2_link.STL" class="collision" />
+                <geom name="wrist_2_link_visual" pos="0 0 0" quat="1.0 0.0 0.0 0.0" material="material_1" type="mesh" mesh="wrist_2_link.STL" class="visual" />
+                <body name="jaw_link" pos="-0.0202 -0.0155 0.0259" quat="1.0 0.0 0.0 0.0">
+                  <joint name="jaw_joint" type="hinge" ref="0.0" class="motor" range="-1.57 1.57" axis="0 1 0" />
+                  <inertial pos="0.00683341078896194 0.0157219157402943 0.0319538151911046" quat="1.0 0.0 0.0 0.0" mass="0.0254751555792519" diaginertia="1.34491906292739e-05 9.48711723454467e-06 5.96578705659465e-06" />
+                  <geom name="jaw_link_collision" pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" mesh="jaw_link.STL" class="collision" />
+                  <geom name="jaw_link_visual" pos="0 0 0" quat="1.0 0.0 0.0 0.0" material="material_1" type="mesh" mesh="jaw_link.STL" class="visual" />
+                  <body name="pen_point_link" pos="0.0071456 -0.051425 0.040525" quat="0.7071054825112363 -0.7071080798594735 0.0 0.0">
+                    <inertial pos="-1.4051E-16 -4.4409E-16 -0.000825" quat="1.0 0.0 0.0 0.0" mass="1.7959E-07" diaginertia="8.8001e-15 8.8001e-15 8.8001e-15" />
+                    <geom name="pen_point_link_collision" pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" mesh="pen_point_link.STL" class="collision" />
+                    <geom name="pen_point_link_visual" pos="0 0 0" quat="1.0 0.0 0.0 0.0" material="material_1" type="mesh" mesh="pen_point_link.STL" class="visual" />
+                  </body>
+                </body>
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+      <site name="base_link_site" pos="0 0 0" quat="1 0 0 0" />
+      <camera name="front_camera" mode="track" fovy="90.0" quat="4.329637285359678e-17 4.329637285359677e-17 0.7071067811865475 0.7071067811865476" pos="0.0 2.0 0.5" />
+      <camera name="side_camera" mode="track" fovy="90.0" quat="-0.5 -0.4999999999999999 0.5 0.5000000000000001" pos="-2.0 0.0 0.5" />
+    </body>
+  </worldbody>
+
+  <actuator>
+    <motor name="shoulder_pan_joint_ctrl" joint="shoulder_pan_joint" class="motor" />
+    <motor name="shoulder_lift_joint_ctrl" joint="shoulder_lift_joint" class="motor" />
+    <motor name="elbow_joint_ctrl" joint="elbow_joint" class="motor" />
+    <motor name="wrist_pitch_joint_ctrl" joint="wrist_pitch_joint" class="motor" />
+    <motor name="wrist_roll_joint_ctrl" joint="wrist_roll_joint" class="motor" />
+    <motor name="jaw_joint_ctrl" joint="jaw_joint" class="motor" />
+  </actuator>
+
+  <contact>
+    <exclude body1="base_link" body2="shoulder_link" />
+    <exclude body1="shoulder_link" body2="upper_arm_link" />
+    <exclude body1="upper_arm_link" body2="forearm_link" />
+    <exclude body1="forearm_link" body2="wrist_1_link" />
+    <exclude body1="wrist_1_link" body2="wrist_2_link" />
+    <exclude body1="wrist_2_link" body2="jaw_link" />
+    <exclude body1="jaw_link" body2="pen_point_link" />
+  </contact>
+
+  <sensor>
+    <framepos name="base_link_site_pos" objtype="site" objname="base_link_site" />
+    <framequat name="base_link_site_quat" objtype="site" objname="base_link_site" />
+    <framelinvel name="base_link_site_linvel" objtype="site" objname="base_link_site" />
+    <frameangvel name="base_link_site_angvel" objtype="site" objname="base_link_site" />
+    <velocimeter name="base_link_site_vel" site="base_link_site" />
+  </sensor>
+</mujoco>

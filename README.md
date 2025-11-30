@@ -37,13 +37,47 @@ source venv/bin/activate
 python convert_meshes_stl_to_obj.py
 ```
 
+转换完成后，OBJ 文件会保存在 `arm_description/meshes_obj/` 目录。
+
+### 3.1. 复制 OBJ 文件到 meshes 目录（可选）
+
+如果需要将 OBJ 文件放在与 STL 文件相同的目录，可以手动复制：
+
+**Windows:**
+```bash
+# 复制所有 OBJ 文件到 meshes 目录
+copy arm_description\meshes_obj\*.obj arm_description\meshes\
+```
+
+**Linux/macOS:**
+```bash
+# 复制所有 OBJ 文件到 meshes 目录
+cp arm_description/meshes_obj/*.obj arm_description/meshes/
+```
+
+或者，您也可以直接更新 URDF 文件中的 mesh 路径，将 `.STL` 改为 `.obj`，并将路径从 `meshes/` 改为 `meshes_obj/`。
+
 ### 4. 运行 URDF 转换
 
 ```bash
 python convert_urdf_to_mjcf.py
 ```
 
-### 5. 验证转换结果
+### 5. 修复 XML 文件（推荐）
+
+转换后的 XML 文件可能包含需要修复的问题（如 `package://` 路径、空的 material 名称等）。使用修复工具自动修复：
+
+```bash
+python fix_mjcf_xml.py mjcf_output/so_arm100_write.xml
+```
+
+修复工具会自动：
+- 将 `package://` 路径转换为相对路径
+- 修复空的 material 名称
+- 将 `.STL` 引用改为 `.obj`（如果存在）
+- 创建备份文件（`.xml.bak`）
+
+### 6. 验证转换结果
 
 ```bash
 # 使用验证工具
@@ -51,6 +85,13 @@ python validate_mjcf.py mjcf_output/so_arm100_write.xml --full
 
 # 或验证并打开查看器
 python validate_mjcf.py mjcf_output/so_arm100_write.xml --viewer
+```
+
+### 7. 在 MuJoCo 查看器中查看模型（推荐）
+
+```bash
+# 直接在 MuJoCo 查看器中打开模型
+python view_mjcf.py mjcf_output/so_arm100_write.xml
 ```
 
 ## 项目结构
@@ -62,7 +103,9 @@ urdf2mjcf/
 │   └── meshes/                # 网格文件
 ├── convert_urdf_to_mjcf.py    # URDF 转 MJCF 主转换脚本
 ├── convert_meshes_stl_to_obj.py  # STL 转 OBJ 工具（专门用于本项目）
+├── fix_mjcf_xml.py            # MuJoCo XML 修复工具
 ├── validate_mjcf.py           # MuJoCo XML 验证工具
+├── view_mjcf.py               # MuJoCo 模型查看器
 ├── batch_mesh_simplifier.py   # 网格简化工具
 ├── convert_stl_to_obj.py      # 通用 STL 转 OBJ 工具
 ├── requirements.txt            # Python 依赖
@@ -75,6 +118,7 @@ urdf2mjcf/
 
 - ✅ URDF 到 MuJoCo XML 格式转换
 - ✅ STL 到 OBJ 格式转换（专门用于 MuJoCo）
+- ✅ MuJoCo XML 文件修复工具
 - ✅ MuJoCo XML 文件验证工具
 - ✅ 自动处理 `package://` 路径
 - ✅ 自动检测和安装依赖

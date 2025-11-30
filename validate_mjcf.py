@@ -118,6 +118,28 @@ class MJCFValidator:
         if self.stats['joints'] == 0:
             self.warnings.append("未找到任何 joint 元素")
 
+    def resolve_package_path(self, package_path: str) -> Optional[Path]:
+        """解析 package:// 路径为实际文件路径"""
+        if package_path.startswith('package://'):
+            # 移除 package:// 前缀
+            relative_path = package_path[10:]  # 移除 'package://'
+            
+            # 尝试多个可能的根目录
+            possible_roots = [
+                self.xml_file.parent.parent.parent,  # 项目根目录
+                self.xml_file.parent.parent,  # arm_description 目录
+                Path.cwd(),  # 当前工作目录
+            ]
+            
+            for root in possible_roots:
+                mesh_path = root / relative_path
+                if mesh_path.exists():
+                    return mesh_path
+            
+            # 如果找不到，返回基于项目根目录的路径
+            return self.xml_file.parent.parent.parent / relative_path
+        return None
+
     def validate_mesh_files(self) -> bool:
         """验证 mesh 文件是否存在"""
         if self.xml_root is None:
@@ -134,19 +156,35 @@ class MJCFValidator:
         for mesh_elem in mesh_elements:
             mesh_file = mesh_elem.get('file')
             if mesh_file:
-                # 处理相对路径
-                if not Path(mesh_file).is_absolute():
-                    mesh_path = xml_dir / mesh_file
+                mesh_path = None
+                
+                # 处理 package:// 路径
+                if mesh_file.startswith('package://'):
+                    mesh_path = self.resolve_package_path(mesh_file)
+                    if mesh_path and not mesh_path.exists():
+                        # 也尝试 .obj 格式（如果原路径是 .STL）
+                        if mesh_path.suffix.upper() == '.STL':
+                            obj_path = mesh_path.with_suffix('.obj')
+                            if obj_path.exists():
+                                self.warnings.append(
+                                    f"Mesh 文件 {mesh_path.name} 不存在，但找到对应的 OBJ 文件: {obj_path.name}"
+                                )
+                                mesh_path = obj_path
                 else:
-                    mesh_path = Path(mesh_file)
+                    # 处理相对路径或绝对路径
+                    if not Path(mesh_file).is_absolute():
+                        mesh_path = xml_dir / mesh_file
+                    else:
+                        mesh_path = Path(mesh_file)
 
-                self.mesh_files.add(mesh_path)
+                if mesh_path:
+                    self.mesh_files.add(mesh_path)
 
-                if not mesh_path.exists():
-                    missing_files.append(str(mesh_path))
-                    self.errors.append(f"Mesh 文件不存在: {mesh_path}")
-                else:
-                    self.info.append(f"Mesh 文件存在: {mesh_path.name}")
+                    if not mesh_path.exists():
+                        missing_files.append(str(mesh_path))
+                        self.errors.append(f"Mesh 文件不存在: {mesh_path}")
+                    else:
+                        self.info.append(f"Mesh 文件存在: {mesh_path.name}")
 
         if not missing_files:
             self.info.append(f"所有 {len(self.mesh_files)} 个 mesh 文件都存在")
