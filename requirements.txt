@@ -1,0 +1,21 @@
+# URDF to MuJoCo XML 转换工具依赖
+
+# 核心转换工具
+urdf2mjcf>=0.1.0
+
+# 网格处理工具（用于 batch_mesh_simplifier.py）
+trimesh>=3.0.0
+numpy>=1.20.0
+
+# MuJoCo 相关（可选，用于验证转换结果和查看器）
+# 安装后可以使用 validate_mjcf.py 的完整验证功能
+# mujoco>=2.3.0
+
+# 注意：
+# 1. urdf2mjcf 可能需要从 GitHub 安装：
+#    git clone https://github.com/kscalelabs/urdf2mjcf.git
+#    cd urdf2mjcf
+#    pip install -e .
+#
+# 2. 如果 urdf2mjcf 无法通过 pip 安装，请参考安装说明
+
