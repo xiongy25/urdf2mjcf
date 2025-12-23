@@ -50,7 +50,13 @@ def view_model(xml_file: Path):
             xml_content = f.read()
         
         xml_dir = xml_file.parent.resolve()
-        
+
+        # 首先提取 meshdir 的值
+        meshdir = ""
+        meshdir_match = re.search(r'meshdir="([^"]*)"', xml_content)
+        if meshdir_match:
+            meshdir = meshdir_match.group(1)
+
         # 将相对路径转换为绝对路径（用于 mesh 文件）
         def fix_path(match):
             path_str = match.group(1)
@@ -58,14 +64,23 @@ def view_model(xml_file: Path):
             if not Path(path_str).is_absolute():
                 # 处理 Windows 路径分隔符，统一使用正斜杠
                 path_normalized = path_str.replace('\\', '/')
-                abs_path = (xml_dir / path_normalized).resolve()
+                # 如果有 meshdir，需要先组合 meshdir 和 file 路径
+                if meshdir and not path_normalized.startswith('/'):
+                    # 组合 meshdir 和 file
+                    full_path = Path(meshdir) / path_normalized
+                    abs_path = (xml_dir / full_path).resolve()
+                else:
+                    abs_path = (xml_dir / path_normalized).resolve()
                 # 使用正斜杠（MuJoCo 推荐，跨平台兼容）
                 return f'file="{abs_path.as_posix()}"'
             return match.group(0)
         
         # 替换所有 file="..." 中的相对路径为绝对路径
         xml_content = re.sub(r'file="([^"]+)"', fix_path, xml_content)
-        
+
+        # 移除 meshdir 属性，因为我们已经将所有路径转换为绝对路径
+        xml_content = re.sub(r'\s*meshdir="[^"]*"', '', xml_content)
+
         # 检查是否已经有地面
         has_ground = '<geom name="floor"' in xml_content or '<geom name="ground"' in xml_content or 'type="plane"' in xml_content
         

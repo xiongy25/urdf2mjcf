@@ -16,10 +16,10 @@ URDF 转 MuJoCo XML (MJCF) 转换脚本
     python convert_urdf_to_mjcf.py
     
     # 指定输入和输出路径
-    python convert_urdf_to_mjcf.py --urdf arm_description/urdf/so_arm100_write.urdf --output mjcf_output
+    python convert_urdf_to_mjcf.py --urdf avatar_description/urdf/so_arm100_write.urdf --output mjcf_output
     
     # 使用绝对路径
-    python convert_urdf_to_mjcf.py --urdf E:/arm_robot/urdf2mjcf/arm_description/urdf/so_arm100_write.urdf
+    python convert_urdf_to_mjcf.py --urdf E:/arm_robot/urdf2mjcf/avatar_description/urdf/so_arm100_write.urdf
 """
 
 import os
@@ -215,20 +215,30 @@ def convert_urdf_to_mjcf(urdf_file: str, output_dir: Optional[str], verbose: boo
                         print(result.stdout)
                 return True
             else:
-                # 如果绝对路径失败，尝试相对路径（从 URDF 文件所在目录）
+                # 如果绝对路径失败，尝试相对路径（从 URDF 文件父目录的父目录）
+                # 这样可以正确处理 ../meshes/ 这样的相对路径
                 if verbose:
                     print("尝试使用相对路径...")
-                
-                urdf_relative = urdf_path.relative_to(urdf_path.parent)
-                # 计算相对于 URDF 文件所在目录的输出路径
-                output_relative = output_xml_file.relative_to(urdf_path.parent)
-                
+
+                # 使用 URDF 文件父目录的父目录作为工作目录
+                # 例如：avatar_description/urdf/file.urdf -> 工作目录为 avatar_description/
+                work_dir = urdf_path.parent.parent
+
+                try:
+                    urdf_relative = urdf_path.relative_to(work_dir)
+                    output_relative = output_xml_file.relative_to(work_dir)
+                except ValueError:
+                    # 如果无法计算相对路径，退回到原来的方法
+                    work_dir = urdf_path.parent
+                    urdf_relative = urdf_path.relative_to(work_dir)
+                    output_relative = output_xml_file.relative_to(work_dir)
+
                 result = subprocess.run(
                     ['urdf2mjcf', str(urdf_relative), '--output', str(output_relative)],
                     capture_output=True,
                     text=True,
                     timeout=120,
-                    cwd=str(urdf_path.parent)
+                    cwd=str(work_dir)
                 )
                 
                 if result.returncode == 0:
@@ -311,18 +321,18 @@ def main():
   python convert_urdf_to_mjcf.py
   
   # 指定输入和输出路径
-  python convert_urdf_to_mjcf.py --urdf arm_description/urdf/so_arm100_write.urdf --output custom_output
+  python convert_urdf_to_mjcf.py --urdf avatar_description/urdf/so_arm100_write.urdf --output custom_output
   
   # 使用绝对路径
-  python convert_urdf_to_mjcf.py --urdf E:/arm_robot/urdf2mjcf/arm_description/urdf/so_arm100_write.urdf
+  python convert_urdf_to_mjcf.py --urdf E:/arm_robot/urdf2mjcf/avatar_description/urdf/so_arm100_write.urdf
         """
     )
     
     parser.add_argument(
         '--urdf',
         type=str,
-        default='arm_description/urdf/so_arm100_write.urdf',
-        help='URDF 文件路径 (默认: arm_description/urdf/so_arm100_write.urdf)'
+        default='avatar_description/urdf/so_arm100_write.urdf',
+        help='URDF 文件路径 (默认: avatar_description/urdf/so_arm100_write.urdf)'
     )
     
     parser.add_argument(
